@@ -63,15 +63,11 @@ class Client:
             self.connected = True
             self.logger.info(f'Client {self.charge_point_id} connected successfully: {uri}')
 
-            # FIX: Send message in OCPP format
+            
             await self.send_boot_notification()
-                 
-            # FIX: Call without parameters
             asyncio.create_task(self.heartbeat_loop())
 
             await self.send_status_notification(self.status)
-            
-            # FIX: Message listening loop
             await self.message_listener()
 
             asyncio.create_task(self.command_poll_loop())   # new
@@ -81,7 +77,7 @@ class Client:
             self.logger.error(f'Connection error: {e}')
             self.connected = False
 
-    # FIX: Message listener function
+
     async def message_listener(self):
         try:
             async for raw_message in self.websocket:
@@ -98,7 +94,7 @@ class Client:
             message = json.loads(raw_message)
             message_type = message[0]
             if message_type == 3:  # CALLRESULT
-                payload = message[2] if len(message) > 2 else {}  # FIX: index 2, not 3
+                payload = message[2] if len(message) > 2 else {}  
                 self.logger.info(f"Response received: {payload}")
                 if payload.get("status") == "Accepted" and payload.get("interval"):
                     self.heartbeat_interval = payload["interval"]
@@ -139,13 +135,13 @@ class Client:
         await self.send_message("BootNotification", boot_notification)
         self.logger.info('BootNotification sent...')
 
-    # FIX: Send single heartbeat, removed infinite loop
+    
     async def send_heartbeat(self):
         heartbeat = {}  
-        await self.send_message("Heartbeat", heartbeat)  # FIX: Send in OCPP format
+        await self.send_message("Heartbeat", heartbeat)  
         self.logger.info("Heartbeat sent...")
         
-    # FIX: Send message in OCPP format
+    
     async def send_status_notification(self, status):
         if self.websocket is None or not self.connected:
             self.logger.warning("Client is not connected..")
