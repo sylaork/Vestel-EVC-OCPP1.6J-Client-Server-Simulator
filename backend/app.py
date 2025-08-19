@@ -180,6 +180,30 @@ def send_command(cp_id): #which evc this command is going to
     logger.info(f"{cp_id} -> {cmd} -> {new_status} (busy={busy})")
     return jsonify({"status":"ok","new_status":new_status,"busy":busy})
 
+
+
+
+@app.route("/heartbeat", methods=["POST"])
+def heartbeat():
+    data = request.json or {}
+    cp_id = data.get("cpId")
+
+    if not cp_id:
+        return jsonify({"error": "cpId missing"}), 400
+
+    conn = get_db_connection()
+    # charge_points tablosundaki last_heartbeat ve last_seen güncelle
+    conn.execute(
+        "UPDATE charge_points SET last_heartbeat=?, last_seen=? WHERE cp_id=?",
+        (datetime.now().isoformat(), datetime.now().isoformat(), cp_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "heartbeat received", "cpId": cp_id}), 200
+
+
+
 @app.route("/bootnotification", methods=["POST"])
 def boot_notification():
     data = request.json or {}
