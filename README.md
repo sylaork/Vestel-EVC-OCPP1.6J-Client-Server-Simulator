@@ -1,9 +1,12 @@
 
+![IMG_8563](https://github.com/user-attachments/assets/0b3bf6af-47cb-401c-8f19-85343a0675e3)
+
+
 # 🚗⚡VESTEL EVC OCPP 1.6-J Client Server Simulation  
 
-**Vestel – Application Software Design Team | Summer Internship Project**  
+**Vestel – Application Software Design Team | Internship Project**  
 
-This project was developed during my summer internship at **Vestel**, within the **Application Software Design Team**, focusing on **EVC (Electric Vehicle Charger) technologies**.  
+This project was developed during my internship at **Vestel**, within the **Application Software Design Team**, focusing on **EVC (Electric Vehicle Charger) technologies**.  
 
 The main goal is to simulate the **end-to-end communication of OCPP 1.6-J protocol messages** between clients (EV chargers), a server, a backend API, and a Flask-based web dashboard.  
 
@@ -26,7 +29,7 @@ Implementing and simulating the three core OCPP 1.6 messages:
 - Sends **Heartbeat** automatically **every 60 seconds when idle**  
 - Sends **StatusNotification** to simulate charging states (`Available`, `Charging`, `SuspendedEV`)  
 - Dynamically updates heartbeat interval based on server response  
-- Supports **multiple clients** (`EVC_1`, `EVC_2`, `EVC_3`) simultaneously  
+- Supports **multiple clients** (`EVC_101`, `EVC_102`, `EVC_103`) simultaneously  
 
 ---
 
@@ -92,7 +95,7 @@ To run the project, first clone the repository and install the required Python d
 ---
 
 ## 📊 Key Features  
-✔ Multiple clients support (EVC_1, EVC_2, EVC_3 + random demo chargers)  
+✔ Multiple clients support (EVC_101, EVC_102, EVC_103 + random demo chargers)  
 ✔ **12 charger models with vendor & model info** preconfigured  
 ✔ **Heartbeat automatically sent every 60s only when idle**  
 ✔ Secure WebSocket via **SSL/TLS**  
@@ -119,5 +122,3 @@ The main focus was to:
 - Learn the **OCPP 1.6-J protocol**,  
 - Implement an **end-to-end simulation** of its core messages,  
 - Integrate clients, server, backend API, and a Flask-based web dashboard.  
-
----
