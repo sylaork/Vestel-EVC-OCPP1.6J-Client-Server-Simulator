@@ -1,6 +1,4 @@
 
-![IMG_8563](https://github.com/user-attachments/assets/0b3bf6af-47cb-401c-8f19-85343a0675e3)
-
 
 # 🚗⚡VESTEL EVC OCPP 1.6-J Client Server Simulation  
 
