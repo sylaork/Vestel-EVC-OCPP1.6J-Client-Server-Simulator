@@ -7,7 +7,6 @@ import time
 from flask import render_template
 from backend.database import get_db_connection, init_database
 import random 
-
 # Flask
 app = Flask(__name__, template_folder="../frontend/templates")
 CORS(app)
@@ -26,21 +25,25 @@ def index():
 def logs(): 
     return render_template("logs.html") 
 
+@app.route("/evc-info")
+def evc_info(): 
+    return render_template("evc_info.html") 
+
 
 # 12 different model
 ALL_DEVICES = [
-    {"cp_id":"EVC_101","vendor":"VendorA","model":"ModelX"},
-    {"cp_id":"EVC_102","vendor":"VendorB","model":"ModelY"},
-    {"cp_id":"EVC_103","vendor":"VendorC","model":"ModelZ"},
-    {"cp_id":"EVC_104","vendor":"VendorD","model":"ModelA"},
-    {"cp_id":"EVC_105","vendor":"VendorE","model":"ModelB"},
-    {"cp_id":"EVC_106","vendor":"VendorF","model":"ModelG"},
-    {"cp_id":"EVC_107","vendor":"VendorG","model":"ModelD"},
-    {"cp_id":"EVC_108","vendor":"VendorH","model":"ModelE"},
-    {"cp_id":"EVC_109","vendor":"VendorI","model":"ModelT"},
-    {"cp_id":"EVC_110","vendor":"VendorJ","model":"ModelL"},
-    {"cp_id":"EVC_111","vendor":"VendorK","model":"ModelS"},
-    {"cp_id":"EVC_112","vendor":"VendorL","model":"ModelO"},
+    {"cp_id":"VESTELEVC_101","vendor":"VendorA","model":"ModelX"},
+    {"cp_id":"VESTELEVC_102","vendor":"VendorB","model":"ModelY"},
+    {"cp_id":"VESTELEVC_103","vendor":"VendorC","model":"ModelZ"},
+    {"cp_id":"VESTELEVC_104","vendor":"VendorD","model":"ModelA"},
+    {"cp_id":"VESTELEVC_105","vendor":"VendorE","model":"ModelB"},
+    {"cp_id":"VESTELEVC_106","vendor":"VendorF","model":"ModelG"},
+    {"cp_id":"VESTELEVC_107","vendor":"VendorG","model":"ModelD"},
+    {"cp_id":"VESTELEVC_108","vendor":"VendorH","model":"ModelE"},
+    {"cp_id":"VESTELEVC_109","vendor":"VendorI","model":"ModelT"},
+    {"cp_id":"VESTELEVC_110","vendor":"VendorJ","model":"ModelL"},
+    {"cp_id":"VESTELEVC_111","vendor":"VendorK","model":"ModelS"},
+    {"cp_id":"VESTELEVC_112","vendor":"VendorL","model":"ModelO"},
 ]
 
 @app.route("/api/charge_points")
@@ -180,9 +183,6 @@ def send_command(cp_id): #which evc this command is going to
     logger.info(f"{cp_id} -> {cmd} -> {new_status} (busy={busy})")
     return jsonify({"status":"ok","new_status":new_status,"busy":busy})
 
-
-
-
 @app.route("/heartbeat", methods=["POST"])
 def heartbeat():
     data = request.json or {}
@@ -192,7 +192,7 @@ def heartbeat():
         return jsonify({"error": "cpId missing"}), 400
 
     conn = get_db_connection()
-    # charge_points tablosundaki last_heartbeat ve last_seen güncelle
+    # update changes in the charge_points table for heartbeat
     conn.execute(
         "UPDATE charge_points SET last_heartbeat=?, last_seen=? WHERE cp_id=?",
         (datetime.now().isoformat(), datetime.now().isoformat(), cp_id)
@@ -202,7 +202,34 @@ def heartbeat():
 
     return jsonify({"status": "heartbeat received", "cpId": cp_id}), 200
 
-
+#added new endpoint for evc info page 
+@app.route("/api/evc_details")
+def get_evc_details():
+    conn = get_db_connection()
+    cps = conn.execute("SELECT * FROM charge_points ORDER BY cp_id").fetchall()
+    
+    result = []
+    for cp in cps:
+        # Son heartbeat zamanını al
+        last_heartbeat = conn.execute(
+            "SELECT timestamp FROM heartbeats WHERE cp_id=? ORDER BY timestamp DESC LIMIT 1",
+            (cp["cp_id"],)
+        ).fetchone()
+        
+        # Son status değişikliğini al
+        last_status = conn.execute(
+            "SELECT timestamp, status FROM status_notifications WHERE cp_id=? ORDER BY timestamp DESC LIMIT 1",
+            (cp["cp_id"],)
+        ).fetchone()
+        
+        cp_dict = dict(cp)
+        cp_dict["last_heartbeat_time"] = last_heartbeat["timestamp"] if last_heartbeat else None
+        cp_dict["last_status_time"] = last_status["timestamp"] if last_status else None
+        cp_dict["last_status_value"] = last_status["status"] if last_status else "Unknown"
+        result.append(cp_dict)
+    
+    conn.close()
+    return jsonify(result)
 
 @app.route("/bootnotification", methods=["POST"])
 def boot_notification():

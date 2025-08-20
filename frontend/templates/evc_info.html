@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VESTEL EVC Information</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            letter-spacing: 1px;
+        }
+        
+        .evc-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .evc-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .evc-table th {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .evc-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: top;
+        }
+        
+        .evc-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .evc-id {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .vendor-info {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        
+        .status-available {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .status-charging {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .status-suspendedew, .status-suspendedevc {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+        
+        .time-ago {
+            color: #95a5a6;
+            font-size: 0.8em;
+            display: block;
+            margin-top: 2px;
+        }
+        
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 10px;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>EVC Information Center</h1>
+            <p>Real-time Charging Point Details</p>
+        </div>
+        
+        <div class="evc-container">
+            <div id="evc-table">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <a href="/" class="nav-link">
+                Back to Dashboard
+            </a>
+            <a href="/logs" class="nav-link">
+                View System Logs
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Never';
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) return 'Never';
+                return date.toLocaleString('tr-TR');
+            } catch (e) {
+                return 'Never';
+            }
+        }
+        
+        function timeDiff(timestamp) {
+            if (!timestamp) return 'N/A';
+            try {
+                const now = new Date();
+                const then = new Date(timestamp);
+                const diff = Math.floor((now - then) / 1000); // seconds
+                
+                if (diff < 60) return diff + 's ago';
+                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                return Math.floor(diff / 86400) + 'd ago';
+            } catch (e) {
+                return 'N/A';
+            }
+        }
+
+        function getStatusClass(status) {
+            const statusMap = {
+                'Available': 'status-available',
+                'Charging': 'status-charging',
+                'SuspendedEV': 'status-suspendedev',
+                'SuspendedEVC': 'status-suspendedevc'
+            };
+            return statusMap[status] || 'status-available';
+        }
+
+        async function loadEVCData() {
+            try {
+                const response = await fetch('/api/evc_details');
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    document.getElementById('evc-table').innerHTML = `
+                        <div class="no-data">
+                            No EVC data available yet
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <table class="evc-table">
+                        <thead>
+                            <tr>
+                                <th>EVC ID</th>
+                                <th>Vendor/Model</th>
+                                <th>Status</th>
+                                <th>Last Heartbeat</th>
+                                <th>Last Status Change</th>
+                                <th>Last Seen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(evc => {
+                    html += `
+                        <tr>
+                            <td class="evc-id">${evc.cp_id}</td>
+                            <td>
+                                <strong>${evc.vendor || 'Unknown'}</strong><br>
+                                <span class="vendor-info">${evc.model || 'Unknown Model'}</span>
+                            </td>
+                            <td>
+                                <div class="status-badge ${getStatusClass(evc.status)}">
+                                    ${evc.status}
+                                </div>
+                            </td>
+                            <td class="timestamp">
+                                ${formatTime(evc.last_heartbeat_time)}<br>
+                                <span class="time-ago">${timeDiff(evc.last_heartbeat_time)}</span>
+                            </td>
+                            <td class="timestamp">
+                                ${formatTime(evc.last_status_time)}<br>
+                                <span class="time-ago">(${evc.last_status_value})</span>
+                            </td>
+                            <td class="timestamp">
+                                ${formatTime(evc.last_seen)}<br>
+                                <span class="time-ago">${timeDiff(evc.last_seen)}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('evc-table').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading EVC data:', error);
+                document.getElementById('evc-table').innerHTML = `
+                    <div class="no-data" style="color: #e74c3c;">
+                        Error loading EVC information. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        // Initial load
+        loadEVCData();
+        
+        // Auto-refresh every 10 seconds
+        setInterval(loadEVCData, 10000);
+    </script>
+</body>
+</html>

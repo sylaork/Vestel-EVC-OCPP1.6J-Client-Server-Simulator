@@ -52,7 +52,6 @@ class Client:
         self.logger.info(f'Connecting to server... {uri}')
         
         try:
-            # CORRECT - single connection
             self.websocket = await websockets.connect(
                 uri,
                 subprotocols=['ocpp1.6'],
@@ -70,7 +69,7 @@ class Client:
             await self.send_status_notification(self.status)
             await self.message_listener()
 
-            asyncio.create_task(self.command_poll_loop())   # new
+            asyncio.create_task(self.command_poll_loop())   
             asyncio.create_task(self.read_loop())    
             
         except Exception as e:
@@ -106,7 +105,7 @@ class Client:
     async def send_message(self, action: str, payload: dict) -> str:
         if self.websocket is None or not self.connected:
             return None
-        message_id = str(uuid.uuid4())
+        message_id = str(uuid.uuid4()) #universally unique indentifier(to create unique id)
         message = [2, message_id, action, payload]
         try:
             await self.websocket.send(json.dumps(message))
@@ -116,7 +115,6 @@ class Client:
             self.logger.error(f"Failed to send {action}: {e}")
             return None
 
-    # FIX: Send message in OCPP format
     async def send_boot_notification(self):
         if self.websocket is None or not self.connected:
             return None
@@ -169,13 +167,13 @@ class Client:
                 self.logger.error(f"Heartbeat error: {e}")
                 break
 
-    async def command_poll_loop(self):
+    async def command_poll_loop(self): #get command from server regularly
         base = "http://localhost:3000"
         while True:
             try:
                 url = f"{base}/next_command/{self.charge_point_id}"
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=5) as resp:
+                    async with session.get(url, timeout=5) as resp: #response in 5sec or - 
                         if resp.status == 200:
                             data = await resp.json()
                             cmd = data.get("command")
@@ -185,7 +183,7 @@ class Client:
                 logging.error(f"Command poll error: {e}")
                 await asyncio.sleep(1.5)
 
-    async def _handle_command(self, cmd: str):
+    async def _handle_command(self, cmd: str): #make command eligiable for evc 
         cmd = cmd.lower().strip()
         status_map = {
             "start": "Charging",
@@ -196,8 +194,7 @@ class Client:
         if new_status:
             await self.send_status_notification(new_status)
 
-    async def _send_call(self, action, payload):
-        # USE THE EXISTING TEMPLATE YOU ALREADY HAVE: generate msg_id, send [2, id, action, payload]
+    async def _send_call(self, action, payload): #send ocpp messages
         msg_id = self._next_msg_id()
         frame = [2, msg_id, action, payload]
         await self.websocket.send(json.dumps(frame))
