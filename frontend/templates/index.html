@@ -399,7 +399,10 @@
             <div class="panel-header">System Logs</div>
             <div class="panel-content" id="logs-content">Loading...</div>
         </div>
-    
+
+        
+        <!--
+        
         <div class="footer">
             <button id="info-btn" class="nav-link" onclick="togglePanel('info')" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                 EVC Info
@@ -408,6 +411,18 @@
                 View System Logs
             </button>
         </div>
+        
+        -->
+    
+        <div class="footer">
+            <a href="/evc-info" class="nav-link" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-right: 10px;">
+                EVC Info
+            </a>
+            <a href="/logs" class="nav-link">
+                View System Logs
+            </a>
+        </div>
+
     </div>
 
     <script>
@@ -495,7 +510,7 @@
                 loadClients();
             }
         }
-
+    /*
         let logsInterval = null; // eklendi
         let infoInterval = setInterval(()=>{
             if(activePanel=='info'){
@@ -528,7 +543,7 @@
                 activePanel = type;
             }
         }
-
+    */
         // EVC Info functions
         function formatTime(timestamp) {
             if (!timestamp) return 'Never';
