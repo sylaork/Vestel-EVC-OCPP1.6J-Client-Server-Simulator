@@ -5,13 +5,18 @@ from flask_cors import CORS
 import threading
 import time
 from flask import render_template
-from backend.database import get_db_connection, init_database
+from backend.database import get_db_connection, init_database, DB_PATH
 import random 
+import os
 # Flask
 app = Flask(__name__, template_folder="../frontend/templates")
 CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("OCPP_app")
+
+if os.path.exists(DB_PATH):
+    os.remove(DB_PATH)
+
 
 init_database()
 
