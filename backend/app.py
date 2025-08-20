@@ -9,7 +9,7 @@ from backend.database import get_db_connection, init_database, DB_PATH
 import random 
 import os
 # Flask
-app = Flask(__name__, template_folder="../templates")
+app = Flask(__name__, template_folder="../frontend/templates")
 CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("OCPP_app")
