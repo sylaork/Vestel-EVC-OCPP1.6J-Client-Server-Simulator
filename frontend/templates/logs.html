@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCPP System Logs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            letter-spacing: 1px;
+        }
+        
+        .logs-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .logs-table th {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .logs-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: top;
+        }
+        
+        .logs-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .log-type {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .type-bootnotification {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .type-heartbeat {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .type-statusnotification {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .client-id {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+        
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-logs {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>System Logs</h1>
+            <p>Real-time EVC Updates</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <!-- İstatistikler buraya yüklenecek -->
+        </div>
+        
+        <div class="logs-container">
+            <div id="logs">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <a href="/" class="nav-link">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+   <script>
+    function getLogTypeClass(type) {
+        const typeMap = {
+            'bootnotification': 'type-bootnotification',
+            'heartbeat': 'type-heartbeat',
+            'statusnotification': 'type-statusnotification'
+        };
+        return typeMap[type.toLowerCase()] || 'type-bootnotification';
+    }
+
+    function formatTimestamp(timestamp) {
+        try {
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                // Eğer geçersiz tarihse, olduğu gibi göster
+                return timestamp;
+            }
+            return date.toLocaleString('tr-TR');
+        } catch (e) {
+            return timestamp;
+        }
+    }
+
+    async function loadLogs() {
+        try {
+            let res = await fetch('/api/logs');
+            let logs = await res.json();
+
+            // İstatistikleri hesapla
+            const stats = {
+                total: logs.length,
+                bootNotifications: logs.filter(l => l.type.toLowerCase() === 'bootnotification').length,
+                heartbeats: logs.filter(l => l.type.toLowerCase() === 'heartbeat').length,
+                statusNotifications: logs.filter(l => l.type.toLowerCase() === 'statusnotification').length
+            };
+
+            // İstatistikleri göster
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.bootNotifications}</div>
+                    <div class="stat-label">Boot Notifications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.heartbeats}</div>
+                    <div class="stat-label">Heartbeats</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.statusNotifications}</div>
+                    <div class="stat-label">Status Changes</div>
+                </div>
+            `;
+
+            if (logs.length === 0) {
+                document.getElementById('logs').innerHTML = `
+                    <div class="no-logs">
+                        No logs available yet
+                    </div>
+                `;
+            } else {
+                document.getElementById('logs').innerHTML = `
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Client ID</th>
+                                <th>Message</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logs.map(l => `
+                                <tr>
+                                    <td>
+                                        <div class="log-type ${getLogTypeClass(l.type)}">
+                                            ${l.type}
+                                        </div>
+                                    </td>
+                                    <td class="client-id">${l.cp_id}</td>
+                                    <td>${l.message}</td>
+                                    <td class="timestamp">${formatTimestamp(l.timestamp)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading logs:', error);
+            document.getElementById('logs').innerHTML = `
+                <div class="no-logs" style="color: #e74c3c;">
+                    Error loading logs. Please try again.
+                </div>
+            `;
+        }
+    }
+
+    // İlk yükleme
+    loadLogs();
+
+    // Otomatik yenileme (5 saniyede bir)
+    setInterval(loadLogs, 5000);
+</script>
+</body>
+</html>
